@@ -611,6 +611,9 @@ td {
           <span id="btnIcon">▶</span>
           <span id="btnText">تشغيل الفلتر</span>
         </button>
+        <button class="run-btn" id="stopBtn" onclick="stopScreener()" style="display:none;background:linear-gradient(135deg,#ef4444,#b91c1c);margin-top:6px;box-shadow:0 4px 15px rgba(239,68,68,0.3);">
+          ⏹ إيقاف
+        </button>
 
       </div>
     </aside>
@@ -662,14 +665,29 @@ td {
 // ════════════════════════════════════════════
 // CONFIG
 // ════════════════════════════════════════════
-const SCRIPT_URL   = "https://script.google.com/macros/s/AKfycbwdEKfDabX05RzZvR3ATBeW0pwCIbLcD4laZbQBGQV-prBf_u1B2g-QaYwGY9mzVRur2A/exec";
+const SCRIPT_URL   = "https://script.google.com/macros/s/AKfycbxjBjtasqePqZ8eCHjXksSZ9kW5AhrXYtVSWY_Q7QTd-tvgW7GMRSoFnCW7-LAbOaY_Og/exec";
 const ANALYSIS_URL = "https://salmamn83.github.io/TASI-ANALYZER-PRO/";
 
 // ════════════════════════════════════════════
 // STATE
 // ════════════════════════════════════════════
-let allResults = [];
-let sectors    = [];
+let allResults      = [];
+let sectors         = [];
+let currentAbort    = null;
+
+function stopScreener() {
+  if (currentAbort) { currentAbort.abort(); currentAbort = null; }
+  document.getElementById('runBtn').style.display  = 'block';
+  document.getElementById('stopBtn').style.display = 'none';
+  document.getElementById('tableContainer').innerHTML = `
+    <div class="state-box">
+      <div class="state-icon">⏹</div>
+      <div class="state-text">تم إيقاف الفلتر</div>
+    </div>`;
+  document.getElementById('runBtn').disabled = false;
+  document.getElementById('btnIcon').textContent = '▶';
+  document.getElementById('btnText').textContent = 'تشغيل الفلتر';
+}
 
 function getSelectedSector() {
   return document.getElementById('sectorSelect').value;
@@ -684,6 +702,9 @@ async function runScreener() {
   btn.disabled = true;
   document.getElementById('btnIcon').textContent = '';
   document.getElementById('btnText').textContent = 'جارٍ التحليل...';
+  document.getElementById('stopBtn').style.display = 'block';
+  currentAbort = new AbortController();
+  const signal = currentAbort.signal;
 
   const sectorLabel = sector === 'ALL' ? 'كل الشركات' : 'القطاع المحدد';
   document.getElementById('tableContainer').innerHTML = `
@@ -693,21 +714,25 @@ async function runScreener() {
     </div>`;
 
   try {
-    const res  = await fetch(`${SCRIPT_URL}?action=screener&sector=${sector}`);
+    const res  = await fetch(`${SCRIPT_URL}?action=screener&sector=${sector}`, { signal });
     const data = await res.json();
     if (data.error) throw new Error(data.error);
     allResults = data.results || [];
     applyFiltersAndRender(data);
   } catch(e) {
-    document.getElementById('tableContainer').innerHTML = `
-      <div class="state-box">
-        <div class="state-icon">⚠️</div>
-        <div class="state-text">حدث خطأ: ${e.message}</div>
-      </div>`;
+    if (e.name !== 'AbortError') {
+      document.getElementById('tableContainer').innerHTML = `
+        <div class="state-box">
+          <div class="state-icon">⚠️</div>
+          <div class="state-text">حدث خطأ: ${e.message}</div>
+        </div>`;
+    }
   } finally {
+    currentAbort = null;
     btn.disabled = false;
     document.getElementById('btnIcon').textContent = '▶';
     document.getElementById('btnText').textContent = 'تشغيل الفلتر';
+    document.getElementById('stopBtn').style.display = 'none';
   }
 }
 
