@@ -189,48 +189,8 @@ header {
   letter-spacing: 0.08em;
 }
 
-.sector-list {
-  padding: 8px;
-  max-height: 380px;
-  overflow-y: auto;
-}
-
-.sector-list::-webkit-scrollbar { width: 4px; }
-.sector-list::-webkit-scrollbar-track { background: transparent; }
-.sector-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-
-.sector-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 9px 12px;
-  border-radius: var(--r2);
-  cursor: pointer;
-  font-size: 13px;
-  color: var(--text2);
-  transition: all 0.15s;
-  margin-bottom: 2px;
-}
-
-.sector-item:hover {
-  background: rgba(255,255,255,0.04);
-  color: var(--text);
-}
-
-.sector-item.active {
-  background: rgba(59,130,246,0.12);
-  color: #93c5fd;
-  border: 1px solid rgba(59,130,246,0.25);
-}
-
-.sector-item.active .sector-dot { background: var(--accent); }
-
-.sector-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--text3);
-  flex-shrink: 0;
+.sector-select-wrap {
+  padding: 12px;
 }
 
 .sidebar-divider {
@@ -605,20 +565,12 @@ td {
     <!-- SIDEBAR -->
     <aside class="sidebar">
 
-      <div class="sidebar-header">
-        <h2>القطاع</h2>
-      </div>
+      <div class="sidebar-filters" style="padding-top:16px;">
 
-      <div class="sector-list" id="sectorList">
-        <div class="sector-item active" data-sector="ALL" onclick="selectSector(this)">
-          <span>كل القطاعات</span>
-          <div class="sector-dot"></div>
-        </div>
-      </div>
-
-      <div class="sidebar-divider"></div>
-
-      <div class="sidebar-filters">
+        <label class="filter-label">القطاع</label>
+        <select id="sectorSelect">
+          <option value="ALL">كل القطاعات</option>
+        </select>
 
         <label class="filter-label">الحد الأدنى للنقاط</label>
         <select id="minScore">
@@ -689,17 +641,16 @@ td {
 
 <script>
 // ════════════════════════════════════════════
-// CONFIG — ضع رابط Google Apps Script هنا
+// CONFIG
 // ════════════════════════════════════════════
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHDCmKODoxR1XIHJG9lcVvWiicefIM-WWEG3DQyVfR4m4HmSlom3mb5y8UHweaIwjfZA/exec";
-const ANALYSIS_URL = "https://salmamn83.github.io/TASI-ANALYZER-PRO/"; // رابط صفحة التحليل
+const SCRIPT_URL   = "https://script.google.com/macros/s/AKfycbyHDCmKODoxR1XIHJG9lcVvWiicefIM-WWEG3DQyVfR4m4HmSlom3mb5y8UHweaIwjfZA/exec";
+const ANALYSIS_URL = "https://salmamn83.github.io/TASI-ANALYZER-PRO/";
 
 // ════════════════════════════════════════════
 // STATE
 // ════════════════════════════════════════════
-let selectedSector = "ALL";
-let allResults     = [];
-let sectors        = [];
+let allResults = [];
+let sectors    = [];
 
 // ════════════════════════════════════════════
 // INIT — جلب القطاعات عند تحميل الصفحة
@@ -711,58 +662,45 @@ async function loadSectors() {
     const res  = await fetch(SCRIPT_URL + "?action=sectors");
     const data = await res.json();
     sectors    = data.sectors || [];
-    renderSectors(sectors);
+    const select = document.getElementById('sectorSelect');
+    sectors.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = s.name_ar;
+      select.appendChild(opt);
+    });
   } catch(e) {
     console.error("خطأ في جلب القطاعات:", e);
   }
 }
 
-function renderSectors(list) {
-  const container = document.getElementById('sectorList');
-  const allItem   = container.querySelector('[data-sector="ALL"]');
-  container.innerHTML = '';
-  container.appendChild(allItem);
-
-  list.forEach(s => {
-    const el = document.createElement('div');
-    el.className     = 'sector-item';
-    el.dataset.sector = s.id;
-    el.onclick       = () => selectSector(el);
-    el.innerHTML     = `<span>${s.name_ar}</span><div class="sector-dot"></div>`;
-    container.appendChild(el);
-  });
-}
-
-function selectSector(el) {
-  document.querySelectorAll('.sector-item').forEach(i => i.classList.remove('active'));
-  el.classList.add('active');
-  selectedSector = el.dataset.sector;
+function getSelectedSector() {
+  return document.getElementById('sectorSelect').value;
 }
 
 // ════════════════════════════════════════════
 // RUN SCREENER
 // ════════════════════════════════════════════
 async function runScreener() {
-  const btn = document.getElementById('runBtn');
+  const sector = getSelectedSector();
+  const btn    = document.getElementById('runBtn');
   btn.disabled = true;
   document.getElementById('btnIcon').textContent = '';
   document.getElementById('btnText').textContent = 'جارٍ التحليل...';
 
+  const sectorLabel = sector === 'ALL' ? 'كل الشركات' : 'القطاع المحدد';
   document.getElementById('tableContainer').innerHTML = `
     <div class="state-box">
       <div class="spinner"></div>
-      <div class="state-text">جارٍ تحليل ${selectedSector === 'ALL' ? 'كل الشركات' : 'القطاع المحدد'}...</div>
+      <div class="state-text">جارٍ تحليل ${sectorLabel}...</div>
     </div>`;
 
   try {
-    const res  = await fetch(`${SCRIPT_URL}?action=screener&sector=${selectedSector}`);
+    const res  = await fetch(`${SCRIPT_URL}?action=screener&sector=${sector}`);
     const data = await res.json();
-
     if (data.error) throw new Error(data.error);
-
     allResults = data.results || [];
     applyFiltersAndRender(data);
-
   } catch(e) {
     document.getElementById('tableContainer').innerHTML = `
       <div class="state-box">
@@ -782,23 +720,24 @@ async function runScreener() {
 function applyFiltersAndRender(data) {
   const minScore = parseInt(document.getElementById('minScore').value) || 0;
   const sortBy   = document.getElementById('sortBy').value;
+  const sector   = getSelectedSector();
 
   let results = [...allResults].filter(r => r.score >= minScore);
 
-  if (sortBy === 'roe')        results.sort((a,b) => (b.details.roe||0) - (a.details.roe||0));
+  if      (sortBy === 'roe')        results.sort((a,b) => (b.details.roe||0) - (a.details.roe||0));
   else if (sortBy === 'net_margin') results.sort((a,b) => (b.details.net_margin||0) - (a.details.net_margin||0));
-  else if (sortBy === 'de')    results.sort((a,b) => (a.details.de||0) - (b.details.de||0));
-  else                         results.sort((a,b) => b.score - a.score);
+  else if (sortBy === 'de')         results.sort((a,b) => (a.details.de||0) - (b.details.de||0));
+  else                              results.sort((a,b) => b.score - a.score);
 
   const warnCount = results.filter(r => r.warnings && r.warnings.length > 0).length;
 
-  document.getElementById('totalCount').textContent    = data.total || 0;
-  document.getElementById('passedCount').textContent   = data.passed || 0;
+  document.getElementById('totalCount').textContent    = data.total    || 0;
+  document.getElementById('passedCount').textContent   = data.passed   || 0;
   document.getElementById('excludedCount').textContent = data.excluded_count || 0;
   document.getElementById('warnCount').textContent     = warnCount;
 
-  const sectorName = selectedSector === 'ALL' ? 'كل القطاعات'
-    : (sectors.find(s => s.id === selectedSector) || {}).name_ar || selectedSector;
+  const sectorName = sector === 'ALL' ? 'كل القطاعات'
+    : (sectors.find(s => s.id === sector) || {}).name_ar || sector;
 
   document.getElementById('resultsTitle').textContent = `النتائج — ${sectorName}`;
   document.getElementById('resultsMeta').textContent  = `${results.length} شركة`;
