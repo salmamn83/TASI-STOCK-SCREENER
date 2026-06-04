@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>فلتر الأسهم السعودية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════════════
+   VARIABLES & RESET
+═══════════════════════════════════════════ */
+:root {
+  --bg:         #0a0e1a;
+  --bg2:        #0f1526;
+  --bg3:        #141c33;
+  --card:       #111827;
+  --border:     rgba(255,255,255,0.07);
+  --border2:    rgba(255,255,255,0.12);
+  --accent:     #3b82f6;
+  --accent2:    #06b6d4;
+  --gold:       #f59e0b;
+  --green:      #10b981;
+  --red:        #ef4444;
+  --warn:       #f59e0b;
+  --text:       #f1f5f9;
+  --text2:      #94a3b8;
+  --text3:      #475569;
+  --font:       'IBM Plex Sans Arabic', sans-serif;
+  --mono:       'IBM Plex Mono', monospace;
+  --r:          12px;
+  --r2:         8px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  direction: rtl;
+}
+
+/* ═══════════════════════════════════════════
+   BACKGROUND PATTERN
+═══════════════════════════════════════════ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(59,130,246,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(6,182,212,0.06) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.grid-bg {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ═══════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════ */
+.wrapper {
+  position: relative;
+  z-index: 1;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px 48px;
+}
+
+/* ═══════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════ */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0 28px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 28px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.logo-text h1 {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.logo-text p {
+  font-size: 12px;
+  color: var(--text3);
+  font-family: var(--mono);
+}
+
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.tasi-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 13px;
+}
+
+.tasi-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ═══════════════════════════════════════════
+   MAIN GRID
+═══════════════════════════════════════════ */
+.main-grid {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* ═══════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════ */
+.sidebar {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  position: sticky;
+  top: 20px;
+}
+
+.sidebar-header {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg3);
+}
+
+.sidebar-header h2 {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.sector-list {
+  padding: 8px;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.sector-list::-webkit-scrollbar { width: 4px; }
+.sector-list::-webkit-scrollbar-track { background: transparent; }
+.sector-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.sector-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  border-radius: var(--r2);
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text2);
+  transition: all 0.15s;
+  margin-bottom: 2px;
+}
+
+.sector-item:hover {
+  background: rgba(255,255,255,0.04);
+  color: var(--text);
+}
+
+.sector-item.active {
+  background: rgba(59,130,246,0.12);
+  color: #93c5fd;
+  border: 1px solid rgba(59,130,246,0.25);
+}
+
+.sector-item.active .sector-dot { background: var(--accent); }
+
+.sector-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text3);
+  flex-shrink: 0;
+}
+
+.sidebar-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+.excluded-notice {
+  margin: 8px;
+  padding: 10px 12px;
+  background: rgba(239,68,68,0.06);
+  border: 1px solid rgba(239,68,68,0.15);
+  border-radius: var(--r2);
+  font-size: 11px;
+  color: #fca5a5;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* فلاتر إضافية */
+.sidebar-filters {
+  padding: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.filter-label {
+  font-size: 11px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+  display: block;
+}
+
+select {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left 10px center;
+}
+
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* زر التشغيل */
+.run-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none;
+  border-radius: var(--r2);
+  color: #fff;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: opacity 0.15s, transform 0.1s;
+  margin-top: 4px;
+}
+
+.run-btn:hover { opacity: 0.9; }
+.run-btn:active { transform: scale(0.98); }
+.run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ═══════════════════════════════════════════
+   CONTENT AREA
+═══════════════════════════════════════════ */
+.content { display: flex; flex-direction: column; gap: 16px; }
+
+/* ═══════════════════════════════════════════
+   SUMMARY CARDS
+═══════════════════════════════════════════ */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.summary-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.summary-card::before {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 3px;
+  height: 100%;
+  border-radius: 0 var(--r) var(--r) 0;
+}
+
+.summary-card.total::before  { background: var(--accent); }
+.summary-card.passed::before { background: var(--green); }
+.summary-card.excl::before   { background: var(--red); }
+.summary-card.warn::before   { background: var(--warn); }
+
+.summary-label {
+  font-size: 11px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.summary-value {
+  font-family: var(--mono);
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.summary-card.total  .summary-value { color: var(--accent); }
+.summary-card.passed .summary-value { color: var(--green); }
+.summary-card.excl   .summary-value { color: var(--red); }
+.summary-card.warn   .summary-value { color: var(--warn); }
+
+/* ═══════════════════════════════════════════
+   RESULTS TABLE
+═══════════════════════════════════════════ */
+.results-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+
+.results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg3);
+}
+
+.results-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.results-meta {
+  font-size: 12px;
+  color: var(--text3);
+  font-family: var(--mono);
+}
+
+.table-wrap { overflow-x: auto; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+thead th {
+  padding: 10px 16px;
+  text-align: right;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+  white-space: nowrap;
+}
+
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+
+tbody tr:last-child { border-bottom: none; }
+
+tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+td {
+  padding: 12px 16px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* رقم الترتيب */
+.rank {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text3);
+  width: 28px;
+  text-align: center;
+}
+
+/* اسم الشركة */
+.company-cell { min-width: 160px; }
+.company-name { font-weight: 500; font-size: 14px; color: var(--text); }
+.company-symbol {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent2);
+  margin-top: 2px;
+}
+
+/* القطاع */
+.sector-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--text2);
+}
+
+/* الأرقام */
+.num {
+  font-family: var(--mono);
+  font-size: 13px;
+  text-align: left;
+  direction: ltr;
+}
+
+.num.green { color: var(--green); }
+.num.red   { color: var(--red); }
+.num.gold  { color: var(--gold); }
+
+/* شريط النقاط */
+.score-cell { min-width: 130px; }
+.score-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  direction: ltr;
+}
+
+.score-num {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 28px;
+  text-align: right;
+}
+
+.score-bar-bg {
+  flex: 1;
+  height: 4px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.score-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transition: width 0.6s ease;
+}
+
+/* ملاحظة */
+.warn-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.warn-badge.ok   { background: rgba(16,185,129,0.1); color: #6ee7b7; }
+.warn-badge.warn { background: rgba(245,158,11,0.1); color: #fcd34d; }
+.warn-badge.miss { background: rgba(239,68,68,0.08); color: #fca5a5; }
+
+/* زر التحليل */
+.analyze-btn {
+  padding: 6px 14px;
+  background: transparent;
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  color: var(--text2);
+  font-family: var(--font);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.analyze-btn:hover {
+  background: rgba(59,130,246,0.1);
+  border-color: rgba(59,130,246,0.4);
+  color: #93c5fd;
+}
+
+/* ═══════════════════════════════════════════
+   LOADING / EMPTY STATES
+═══════════════════════════════════════════ */
+.state-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  gap: 16px;
+  color: var(--text3);
+}
+
+.state-icon { font-size: 40px; opacity: 0.4; }
+.state-text { font-size: 14px; }
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--border2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ═══════════════════════════════════════════
+   SCORE COLOR
+═══════════════════════════════════════════ */
+.s-high { color: var(--green); }
+.s-mid  { color: var(--gold); }
+.s-low  { color: var(--text2); }
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .main-grid { grid-template-columns: 1fr; }
+  .sidebar { position: static; }
+  .summary-grid { grid-template-columns: repeat(2,1fr); }
+}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">📊</div>
+      <div class="logo-text">
+        <h1>فلتر الأسهم السعودية</h1>
+        <p>TASI Screener v1.0</p>
+      </div>
+    </div>
+    <div class="header-meta">
+      <div class="tasi-badge">
+        <div class="tasi-dot"></div>
+        <span>تداول — TASI</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+      <div class="sidebar-header">
+        <h2>القطاع</h2>
+      </div>
+
+      <div class="sector-list" id="sectorList">
+        <div class="sector-item active" data-sector="ALL" onclick="selectSector(this)">
+          <span>كل القطاعات</span>
+          <div class="sector-dot"></div>
+        </div>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="excluded-notice">
+        <span>⊘</span>
+        مستبعد دائماً: الأسمنت، الريتات
+      </div>
+
+      <div class="sidebar-filters">
+
+        <label class="filter-label">الحد الأدنى للنقاط</label>
+        <select id="minScore">
+          <option value="0">بدون حد</option>
+          <option value="40">40 فأكثر</option>
+          <option value="50">50 فأكثر</option>
+          <option value="60">60 فأكثر</option>
+        </select>
+
+        <label class="filter-label">الترتيب حسب</label>
+        <select id="sortBy">
+          <option value="score">النقاط</option>
+          <option value="roe">ROE</option>
+          <option value="net_margin">هامش الربح</option>
+          <option value="de">D/E (تصاعدي)</option>
+        </select>
+
+        <button class="run-btn" id="runBtn" onclick="runScreener()">
+          <span id="btnIcon">▶</span>
+          <span id="btnText">تشغيل الفلتر</span>
+        </button>
+
+      </div>
+    </aside>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- SUMMARY -->
+      <div class="summary-grid">
+        <div class="summary-card total">
+          <div class="summary-label">إجمالي الشركات</div>
+          <div class="summary-value" id="totalCount">—</div>
+        </div>
+        <div class="summary-card passed">
+          <div class="summary-label">اجتاز الفلتر</div>
+          <div class="summary-value" id="passedCount">—</div>
+        </div>
+        <div class="summary-card excl">
+          <div class="summary-label">مستبعد</div>
+          <div class="summary-value" id="excludedCount">—</div>
+        </div>
+        <div class="summary-card warn">
+          <div class="summary-label">بيانات ناقصة</div>
+          <div class="summary-value" id="warnCount">—</div>
+        </div>
+      </div>
+
+      <!-- RESULTS TABLE -->
+      <div class="results-card">
+        <div class="results-header">
+          <div class="results-title" id="resultsTitle">النتائج</div>
+          <div class="results-meta" id="resultsMeta"></div>
+        </div>
+        <div class="table-wrap">
+          <div id="tableContainer">
+            <div class="state-box">
+              <div class="state-icon">🔍</div>
+              <div class="state-text">اختر القطاع واضغط تشغيل الفلتر</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════
+// CONFIG — ضع رابط Google Apps Script هنا
+// ════════════════════════════════════════════
+const SCRIPT_URL = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
+const ANALYSIS_URL = "analysis.html"; // رابط صفحة التحليل
+
+// ════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════
+let selectedSector = "ALL";
+let allResults     = [];
+let sectors        = [];
+
+// ════════════════════════════════════════════
+// INIT — جلب القطاعات عند تحميل الصفحة
+// ════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', loadSectors);
+
+async function loadSectors() {
+  try {
+    const res  = await fetch(SCRIPT_URL + "?action=sectors");
+    const data = await res.json();
+    sectors    = data.sectors || [];
+    renderSectors(sectors);
+  } catch(e) {
+    console.error("خطأ في جلب القطاعات:", e);
+  }
+}
+
+function renderSectors(list) {
+  const container = document.getElementById('sectorList');
+  const allItem   = container.querySelector('[data-sector="ALL"]');
+  container.innerHTML = '';
+  container.appendChild(allItem);
+
+  list.forEach(s => {
+    const el = document.createElement('div');
+    el.className     = 'sector-item';
+    el.dataset.sector = s.id;
+    el.onclick       = () => selectSector(el);
+    el.innerHTML     = `<span>${s.name_ar}</span><div class="sector-dot"></div>`;
+    container.appendChild(el);
+  });
+}
+
+function selectSector(el) {
+  document.querySelectorAll('.sector-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  selectedSector = el.dataset.sector;
+}
+
+// ════════════════════════════════════════════
+// RUN SCREENER
+// ════════════════════════════════════════════
+async function runScreener() {
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  document.getElementById('btnIcon').textContent = '';
+  document.getElementById('btnText').textContent = 'جارٍ التحليل...';
+
+  document.getElementById('tableContainer').innerHTML = `
+    <div class="state-box">
+      <div class="spinner"></div>
+      <div class="state-text">جارٍ تحليل ${selectedSector === 'ALL' ? 'كل الشركات' : 'القطاع المحدد'}...</div>
+    </div>`;
+
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?action=screener&sector=${selectedSector}`);
+    const data = await res.json();
+
+    if (data.error) throw new Error(data.error);
+
+    allResults = data.results || [];
+    applyFiltersAndRender(data);
+
+  } catch(e) {
+    document.getElementById('tableContainer').innerHTML = `
+      <div class="state-box">
+        <div class="state-icon">⚠️</div>
+        <div class="state-text">حدث خطأ: ${e.message}</div>
+      </div>`;
+  } finally {
+    btn.disabled = false;
+    document.getElementById('btnIcon').textContent = '▶';
+    document.getElementById('btnText').textContent = 'تشغيل الفلتر';
+  }
+}
+
+// ════════════════════════════════════════════
+// APPLY FILTERS + RENDER
+// ════════════════════════════════════════════
+function applyFiltersAndRender(data) {
+  const minScore = parseInt(document.getElementById('minScore').value) || 0;
+  const sortBy   = document.getElementById('sortBy').value;
+
+  let results = [...allResults].filter(r => r.score >= minScore);
+
+  if (sortBy === 'roe')        results.sort((a,b) => (b.details.roe||0) - (a.details.roe||0));
+  else if (sortBy === 'net_margin') results.sort((a,b) => (b.details.net_margin||0) - (a.details.net_margin||0));
+  else if (sortBy === 'de')    results.sort((a,b) => (a.details.de||0) - (b.details.de||0));
+  else                         results.sort((a,b) => b.score - a.score);
+
+  const warnCount = results.filter(r => r.warnings && r.warnings.length > 0).length;
+
+  document.getElementById('totalCount').textContent    = data.total || 0;
+  document.getElementById('passedCount').textContent   = data.passed || 0;
+  document.getElementById('excludedCount').textContent = data.excluded_count || 0;
+  document.getElementById('warnCount').textContent     = warnCount;
+
+  const sectorName = selectedSector === 'ALL' ? 'كل القطاعات'
+    : (sectors.find(s => s.id === selectedSector) || {}).name_ar || selectedSector;
+
+  document.getElementById('resultsTitle').textContent = `النتائج — ${sectorName}`;
+  document.getElementById('resultsMeta').textContent  = `${results.length} شركة`;
+
+  renderTable(results);
+}
+
+// ════════════════════════════════════════════
+// RENDER TABLE
+// ════════════════════════════════════════════
+function renderTable(results) {
+  if (!results.length) {
+    document.getElementById('tableContainer').innerHTML = `
+      <div class="state-box">
+        <div class="state-icon">📭</div>
+        <div class="state-text">لا توجد نتائج بهذه المعايير</div>
+      </div>`;
+    return;
+  }
+
+  const rows = results.map((r, i) => {
+    const d        = r.details || {};
+    const scoreCol = d.scores ? Object.values(d.scores).reduce((a,b) => a+b, 0) : r.score;
+    const scoreClass = scoreCol >= 60 ? 's-high' : scoreCol >= 40 ? 's-mid' : 's-low';
+    const barWidth   = Math.min(100, scoreCol);
+
+    const warnHtml = (!r.warnings || r.warnings.length === 0)
+      ? `<span class="warn-badge ok">✓ بيانات كاملة</span>`
+      : r.warnings.length <= 2
+        ? `<span class="warn-badge warn">⚠ ${r.warnings[0]}</span>`
+        : `<span class="warn-badge miss">⚠ بيانات ناقصة</span>`;
+
+    const de  = d.de         != null ? d.de.toFixed(2)        : '—';
+    const roe = d.roe        != null ? d.roe.toFixed(1) + '%' : '—';
+    const mgn = d.net_margin != null ? d.net_margin.toFixed(1) + '%' : '—';
+    const pe  = d.pe         != null ? d.pe.toFixed(1)        : '—';
+
+    const roeClass = d.roe >= 15 ? 'green' : d.roe >= 8 ? 'gold' : '';
+    const mgnClass = d.net_margin >= 20 ? 'green' : d.net_margin >= 10 ? 'gold' : '';
+
+    return `
+      <tr>
+        <td class="rank">${i + 1}</td>
+        <td class="company-cell">
+          <div class="company-name">${r.name_ar}</div>
+          <div class="company-symbol">${r.symbol}</div>
+        </td>
+        <td><span class="sector-badge">${r.sector_ar || '—'}</span></td>
+        <td><span class="num">${de}</span></td>
+        <td><span class="num ${roeClass}">${roe}</span></td>
+        <td><span class="num ${mgnClass}">${mgn}</span></td>
+        <td><span class="num">${pe}</span></td>
+        <td class="score-cell">
+          <div class="score-row">
+            <div class="score-bar-bg">
+              <div class="score-bar-fill" style="width:${barWidth}%"></div>
+            </div>
+            <span class="score-num ${scoreClass}">${scoreCol}</span>
+          </div>
+        </td>
+        <td>${warnHtml}</td>
+        <td>
+          <a class="analyze-btn" href="${ANALYSIS_URL}?symbol=${r.symbol}" target="_blank">
+            تحليل ↗
+          </a>
+        </td>
+      </tr>`;
+  }).join('');
+
+  document.getElementById('tableContainer').innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>الشركة</th>
+          <th>القطاع</th>
+          <th>D/E</th>
+          <th>ROE</th>
+          <th>هامش%</th>
+          <th>P/E</th>
+          <th>النقاط / 100</th>
+          <th>ملاحظة</th>
+          <th>تحليل</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// تحديث النتائج عند تغيير الفلاتر بدون إعادة جلب
+document.getElementById('minScore').addEventListener('change', () => {
+  if (allResults.length) applyFiltersAndRender({ total: document.getElementById('totalCount').textContent, passed: allResults.length, excluded_count: document.getElementById('excludedCount').textContent });
+});
+document.getElementById('sortBy').addEventListener('change', () => {
+  if (allResults.length) applyFiltersAndRender({ total: document.getElementById('totalCount').textContent, passed: allResults.length, excluded_count: document.getElementById('excludedCount').textContent });
+});
+</script>
+</body>
+</html>
