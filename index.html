@@ -570,6 +570,25 @@ td {
         <label class="filter-label">القطاع</label>
         <select id="sectorSelect">
           <option value="ALL">كل القطاعات</option>
+          <option value="TBNI">البنوك</option>
+          <option value="TISI">التأمين</option>
+          <option value="TDFI">الخدمات المالية</option>
+          <option value="THEI">الرعاية الصحية</option>
+          <option value="TPBI">الأدوية</option>
+          <option value="TRLI">التجزئة</option>
+          <option value="TFSI">تجزئة السلع الكمالية</option>
+          <option value="TFBI">إنتاج الأغذية</option>
+          <option value="TCSI">الخدمات الاستهلاكية</option>
+          <option value="TDAI">السلع طويلة الأجل</option>
+          <option value="TCGI">السلع الرأسمالية</option>
+          <option value="TMTI">المواد الأساسية</option>
+          <option value="TENI">الطاقة</option>
+          <option value="TUTI">الخدمات العامة</option>
+          <option value="TTSI">الاتصالات</option>
+          <option value="TSSI">التطبيقات وخدمات التقنية</option>
+          <option value="TRMI">إدارة وتطوير العقارات</option>
+          <option value="TCPI">الخدمات التجارية والمهنية</option>
+          <option value="TMDI">وسائل الإعلام</option>
         </select>
 
         <label class="filter-label">الحد الأدنى للنقاط</label>
@@ -652,28 +671,6 @@ const ANALYSIS_URL = "https://salmamn83.github.io/TASI-ANALYZER-PRO/";
 let allResults = [];
 let sectors    = [];
 
-// ════════════════════════════════════════════
-// INIT — جلب القطاعات عند تحميل الصفحة
-// ════════════════════════════════════════════
-window.addEventListener('DOMContentLoaded', loadSectors);
-
-async function loadSectors() {
-  try {
-    const res  = await fetch(SCRIPT_URL + "?action=sectors");
-    const data = await res.json();
-    sectors    = data.sectors || [];
-    const select = document.getElementById('sectorSelect');
-    sectors.forEach(s => {
-      const opt = document.createElement('option');
-      opt.value = s.id;
-      opt.textContent = s.name_ar;
-      select.appendChild(opt);
-    });
-  } catch(e) {
-    console.error("خطأ في جلب القطاعات:", e);
-  }
-}
-
 function getSelectedSector() {
   return document.getElementById('sectorSelect').value;
 }
@@ -736,8 +733,8 @@ function applyFiltersAndRender(data) {
   document.getElementById('excludedCount').textContent = data.excluded_count || 0;
   document.getElementById('warnCount').textContent     = warnCount;
 
-  const sectorName = sector === 'ALL' ? 'كل القطاعات'
-    : (sectors.find(s => s.id === sector) || {}).name_ar || sector;
+  const sel        = document.getElementById('sectorSelect');
+  const sectorName = sel.options[sel.selectedIndex].text;
 
   document.getElementById('resultsTitle').textContent = `النتائج — ${sectorName}`;
   document.getElementById('resultsMeta').textContent  = `${results.length} شركة`;
