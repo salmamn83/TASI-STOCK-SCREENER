@@ -665,7 +665,7 @@ td {
 // ════════════════════════════════════════════
 // CONFIG
 // ════════════════════════════════════════════
-const SCRIPT_URL   = "https://script.google.com/macros/s/AKfycbyG54SD-7CWz1_sShOIcUw6FojOZWXDelBKmsilUkHBek6VhWL3OBQFBxUEpYA83qQIKA/exec";
+const SCRIPT_URL   = "https://script.google.com/macros/s/AKfycbwN3prZj2psE98RoIQTl10rXnskbjcCOm2Uq2TNEt2M7ewWLRzPVFfM8G36ZI68nbE9DQ/exec";
 const ANALYSIS_URL = "https://salmamn83.github.io/TASI-ANALYZER-PRO/";
 
 // ════════════════════════════════════════════
@@ -792,12 +792,15 @@ function renderTable(results) {
         ? `<span class="warn-badge warn">⚠ ${r.warnings[0]}</span>`
         : `<span class="warn-badge miss">⚠ بيانات ناقصة</span>`;
 
-    const de  = d.de         != null ? d.de.toFixed(2)        : '—';
-    const roe = d.roe        != null ? d.roe.toFixed(1) + '%' : '—';
-    const mgn = d.net_margin != null ? d.net_margin.toFixed(1) + '%' : '—';
-    const pe  = d.pe         != null ? d.pe.toFixed(1)        : '—';
+    const de    = d.de               != null ? d.de.toFixed(2)               : '—';
+    const roe   = d.roe              != null ? d.roe.toFixed(1) + '%'          : '—';
+    const roa   = d.roa              != null ? d.roa.toFixed(1) + '%'          : '—';
+    const mgn   = d.net_margin       != null ? d.net_margin.toFixed(1) + '%'   : '—';
+    const opmgn = d.operating_margin != null ? d.operating_margin.toFixed(1) + '%' : '—';
+    const pe    = d.pe               != null ? d.pe.toFixed(1)                 : '—';
 
     const roeClass = d.roe >= 15 ? 'green' : d.roe >= 8 ? 'gold' : '';
+    const roaClass = d.roa >= 10 ? 'green' : d.roa >= 5 ? 'gold' : '';
     const mgnClass = d.net_margin >= 20 ? 'green' : d.net_margin >= 10 ? 'gold' : '';
 
     return `
@@ -810,7 +813,9 @@ function renderTable(results) {
         <td><span class="sector-badge">${r.sector_ar || '—'}</span></td>
         <td><span class="num">${de}</span></td>
         <td><span class="num ${roeClass}">${roe}</span></td>
+        <td><span class="num ${roaClass}">${roa}</span></td>
         <td><span class="num ${mgnClass}">${mgn}</span></td>
+        <td><span class="num">${opmgn}</span></td>
         <td><span class="num">${pe}</span></td>
         <td class="score-cell">
           <div class="score-row">
@@ -838,9 +843,11 @@ function renderTable(results) {
           <th>القطاع</th>
           <th>D/E</th>
           <th>ROE</th>
-          <th>هامش%</th>
+          <th>ROA</th>
+          <th>هامش ص%</th>
+          <th>هامش ت%</th>
           <th>P/E</th>
-          <th>النقاط / 100</th>
+          <th>النقاط</th>
           <th>ملاحظة</th>
           <th>تحليل</th>
         </tr>
